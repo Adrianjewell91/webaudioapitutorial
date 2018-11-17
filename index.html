@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <audio src="./audio/audio1.mp3" type="audio/mpeg"></audio>
+    <button data-playing="false" role="switch" aria-checked="false">
+        <span>Play/Pause</span>
+    </button>
+    Volume:<input type="range" id="volume" min="0" max="2" value="1" step="0.01" />
+    Panner:<input type="range" id="panner" min="-1" max="1" value="0" step="0.01" />
+    <script>
+        const audioCtx = new AudioContext();
+
+        // get the audio element
+        const audioElement = document.querySelector('audio');
+
+        const volumeControl = document.querySelector('#volume');
+
+        const pannerControl = document.querySelector('#panner');
+
+        // select our play button
+        const playButton = document.querySelector('button');
+
+        // pass it into the audio context
+        const track = audioCtx.createMediaElementSource(audioElement);
+        const gainNode = audioCtx.createGain();
+        const panner = new StereoPannerNode(audioCtx, { pan: 0 });
+
+        // connect it to a destination
+        track.connect(gainNode).connect(panner).connect(audioCtx.destination);
+
+
+        playButton.addEventListener('click', function () {
+            // check if context is in suspended state (autoplay policy)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // play or pause track depending on state
+            if (this.dataset.playing === 'false') {
+                audioElement.play();
+                this.dataset.playing = 'true';
+            } else if (this.dataset.playing === 'true') {
+                audioElement.pause();
+                this.dataset.playing = 'false';
+            }
+
+        }, false);
+
+        volumeControl.addEventListener('input', function () {
+            console.log(gainNode);
+            gainNode.gain.value = this.value;
+        }, false);
+
+        pannerControl.addEventListener('input', function () {
+            panner.pan.value = this.value;
+        }, false);
+
+        audioElement.addEventListener('ended', () => {
+            playButton.dataset.playing = 'false';
+        }, false);
+    </script>
+</body>
+
+</html>
